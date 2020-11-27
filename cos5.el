@@ -202,6 +202,7 @@ According to (HTTPMETHOD HTTPURI HTTPPARAMETERS HTTPHEADERS)."
 
 (defun cos5-putObject (bucket region key content-type body)
   "Upload BODY to BUCKET from REGION with CONTENT-TYPE and KEY."
+  (cl-assert (not (multibyte-string-p body)))
   (let* ((url (format
                "https://%s.cos.%s.myqcloud.com/%s" bucket region key))
          (urlObj (url-generic-parse-url url))
@@ -210,11 +211,13 @@ According to (HTTPMETHOD HTTPURI HTTPPARAMETERS HTTPHEADERS)."
          (url-request-method "PUT")
          (url-request-extra-headers
           `(("Content-Type" . ,content-type)
-            ("Host" . ,host)))
+            ("Host" . ,(encode-coding-string host 'utf-8))))
          (url-request-extra-headers
           (cons
            `("Authorization" .
-             ,(cos5--sign "PUT" path nil url-request-extra-headers))
+             ,(encode-coding-string
+               (cos5--sign "PUT" path nil url-request-extra-headers)
+               'utf-8))
            url-request-extra-headers))
          (url-request-data body))
     (with-current-buffer (url-retrieve-synchronously url)
