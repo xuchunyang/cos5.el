@@ -28,6 +28,13 @@ Authorization: {{ (cos5--sign "PUT" "/cos5.el" nil '(("Content-Type" . "text/pla
 
 {{(verb-read-file "cos5.el")}}
 
+*** PUT Object (UTF-8 测试)
+PUT /utf-8.txt
+Content-Type: text/plain; charset=utf-8
+Authorization: {{ (cos5--sign "PUT" "/utf-8.txt" nil '(("Content-Type" . "text/plain; charset=utf-8"))) }}
+
+hello, 你好呀
+
 *** GET Object
 GET /cos5.el
 Authorization: {{ (cos5--sign "GET" "/cos5.el" nil nil) }}
