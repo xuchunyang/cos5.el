@@ -26,17 +26,20 @@
 (require 'cos5)
 (require 'ert)
 
-(ert-deftest cos5--sign ()
-  (should (string= (cos5--sign "1606464952;1606468552"
-                               "secretid"
-                               "secretkey"
-                               "GET"
-                               "/"
-                               '(("max-keys" . "20")
-                                 ("prefix" . "abc"))
-                               '(("Content-Type" . "image/jpeg")
-                                 ("host" . "test-1250000000.cos.ap-beijing.mycloud.com")))
-                   "q-sign-algorithm=sha1&q-ak=secretid&q-sign-time=1606464952;1606468552&q-key-time=1606464952;1606468552&q-header-list=content-type;host&q-url-param-list=max-keys;prefix&q-signature=775656599f1674896f8cba8818b5300d19e021be")))
+(ert-deftest cos5--sign-subr ()
+  (should
+   (string=
+    (cos5--sign-subr
+     "1606464952;1606468552"
+     "secretid"
+     "secretkey"
+     "GET"
+     "/"
+     '(("max-keys" . "20")
+       ("prefix" . "abc"))
+     '(("Content-Type" . "image/jpeg")
+       ("host" . "test-1250000000.cos.ap-beijing.mycloud.com")))
+    "q-sign-algorithm=sha1&q-ak=secretid&q-sign-time=1606464952;1606468552&q-key-time=1606464952;1606468552&q-header-list=content-type;host&q-url-param-list=max-keys;prefix&q-signature=775656599f1674896f8cba8818b5300d19e021be")))
 
 (provide 'cos5-tests)
 ;;; cos5-tests.el ends here

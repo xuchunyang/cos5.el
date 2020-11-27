@@ -30,6 +30,7 @@
 ;;; Code:
 
 (require 'cl-lib)                       ; `cl-sort'
+(require 'auth-source)                  ; `auth-source-search'
 
 ;;;; 请求签名 https://cloud.tencent.com/document/product/436/7778
 
@@ -47,17 +48,19 @@
         (EndTimestamp (format-time-string "%s" (time-add nil duration))))
     (format "%s;%s" StartTimestamp EndTimestamp)))
 
-(defun cos5--sign (KeyTime
-                   SecretId
-                   SecretKey
-                   HttpMethod
-                   HttpURI
-                   HttpParameters
-                   HttpHeaders)
+(defun cos5--sign-subr (KeyTime
+                        SecretId
+                        SecretKey
+                        HttpMethod
+                        HttpURI
+                        HttpParameters
+                        HttpHeaders)
   "Sign the request.
 According to
 \(KEYTIME SECRETID SECRETKEY HTTPMETHOD HTTPURI HTTPPARAMETERS HTTPHEADERS).
 
+HTTPMETHOD is a string.
+HTTPURI starts with / and contains only the path.
 HTTPPARAMETERS and HTTPHEADERS are alist.
 
 See URL `https://cloud.tencent.com/document/product/436/7778'."
@@ -110,6 +113,42 @@ See URL `https://cloud.tencent.com/document/product/436/7778'."
        (q-url-param-list . ,UrlParamList)
        (q-signature . ,Signature))
      "&")))
+
+(defvar cos5-secret-id nil
+  "The SecretId for Tencent COS..")
+
+(defvar cos5-secret-key nil
+  "The SecretKey for Tencent COS.")
+
+(defun cos5--auth-source-get-secret (&optional host)
+  "Return a list of SecretId and SecretKey by checking HOST in auth-source.
+If HOST is omitted or nil, \"cloud.tencent.com\" will be used."
+  (let ((plist (car (auth-source-search
+                     :host (or host "cloud.tencent.com")
+                     :max 1))))
+    (unless plist
+      (user-error
+       "Can't find host: %s, \
+please add your SecretId and SecretKey to ~/.authinfo[.gpg]" host))
+    (let ((SecretId (plist-get plist :user))
+          (SecretKey (funcall (plist-get plist :secret))))
+      (list SecretId SecretKey))))
+
+(defun cos5--sign (HttpMethod HttpURI &optional HttpParameters HttpHeaders)
+  "Return the signature of the request.
+According to (HTTPMETHOD HTTPURI HTTPPARAMETERS HTTPHEADERS)."
+  (pcase-let (((seq SecretId SecretKey)
+               (if (and cos5-secret-id cos5-secret-key)
+                   (list cos5-secret-id cos5-secret-key)
+                 (cos5--auth-source-get-secret))))
+    (cos5--sign-subr
+     (cos5--KeyTime 3600)
+     SecretId
+     SecretKey
+     HttpMethod
+     HttpURI
+     HttpParameters
+     HttpHeaders)))
 
 (provide 'cos5)
 ;;; cos5.el ends here
