@@ -226,7 +226,7 @@ According to (HTTPMETHOD HTTPURI HTTPPARAMETERS HTTPHEADERS)."
         (display-buffer (current-buffer))))))
 
 (defun cos5-deleteObject (bucket region key)
-  "Return an object of BUCKET from REGION with KEY."
+  "Delete an object of BUCKET from REGION with KEY."
   (let* ((url-request-method "DELETE")
          (url (format "https://%s.cos.%s.myqcloud.com/%s" bucket region key))
          (url-request-extra-headers
