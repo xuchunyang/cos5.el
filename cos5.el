@@ -3,8 +3,10 @@
 ;; Copyright (C) 2020  Xu Chunyang
 
 ;; Author: Xu Chunyang <xuchunyang56@gmail.com>
+;; Homepage: https://github.com/xuchunyang/cos5.el
 ;; Created: 2020-11-27
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((emacs "26.1"))
+;; Version: 0
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -27,6 +29,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)                       ; `cl-sort'
+
 ;;;; 请求签名 https://cloud.tencent.com/document/product/436/7778
 
 (defun cos5--unibyte-string-to-hex (s)
@@ -35,7 +39,7 @@
 (defun cos5--hmac-sha1 (key value)
   (cos5--unibyte-string-to-hex (gnutls-hash-mac 'SHA1 key value)))
 
-(defun cos--KeyTime (duration)
+(defun cos5--KeyTime (duration)
   (let ((StartTimestamp (format-time-string "%s"))
         (EndTimestamp (format-time-string "%s" (time-add nil duration))))
     (format "%s;%s" StartTimestamp EndTimestamp)))
