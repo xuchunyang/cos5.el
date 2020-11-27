@@ -1,0 +1,31 @@
+#+TITLE: Emacs Lisp wrapper for Tencent Cloud Object Storage XML API
+
+* API
+
+** GET Service（List Buckets）
+
+#+begin_src elisp
+(cos5-getService)
+;; => ((Bucket nil (Name nil "test-1258907199") (Location nil "ap-shanghai") (CreationDate nil "2020-11-26T19:45:32Z")))
+#+end_src
+
+** PUT Object
+
+#+begin_src elisp
+(cos5-putObject "test-1258907199" "ap-shanghai"
+                "1.txt" "text/plain" "Hello from Emacs!")
+#+end_src
+
+** GET Object
+
+#+begin_src elisp
+(cos5-getObject "test-1258907199" "ap-shanghai"
+                "1.txt")
+;; => "Hello from Emacs!"
+#+end_src
+
+** GetBucket (List Objects)
+
+#+begin_src elisp
+(cos5-getBucket "test-1258907199" "ap-shanghai")
+#+end_src
