@@ -197,7 +197,8 @@ According to (HTTPMETHOD HTTPURI HTTPPARAMETERS HTTPHEADERS)."
       (if (not (eq 200 url-http-response-status))
           (display-buffer (current-buffer))
         (goto-char (1+ url-http-end-of-headers))
-        (buffer-substring-no-properties (point) (point-max))))))
+        (prog1 (buffer-substring-no-properties (point) (point-max))
+          (kill-buffer))))))
 
 (defun cos5-putObject (bucket region key content-type body)
   "Upload BODY to BUCKET from REGION with CONTENT-TYPE and KEY."
@@ -217,7 +218,8 @@ According to (HTTPMETHOD HTTPURI HTTPPARAMETERS HTTPHEADERS)."
            url-request-extra-headers))
          (url-request-data body))
     (with-current-buffer (url-retrieve-synchronously url)
-      (unless (eq 200 url-http-response-status)
+      (if (eq 200 url-http-response-status)
+          (kill-buffer)
         (display-buffer (current-buffer))))))
 
 (provide 'cos5)
