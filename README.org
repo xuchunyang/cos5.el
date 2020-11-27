@@ -1,5 +1,7 @@
 #+TITLE: Emacs Lisp wrapper for Tencent Cloud Object Storage XML API
 
+腾讯云 COS。
+
 * API
 
 ** GET Service（List Buckets）
@@ -29,3 +31,7 @@
 #+begin_src elisp
 (cos5-getBucket "test-1258907199" "ap-shanghai")
 #+end_src
+
+* Requirement
+
+The function =gnutls-hash-mac= requires Emacs 26.1 compiled with GnuTLS.
