@@ -200,6 +200,19 @@ According to (HTTPMETHOD HTTPURI HTTPPARAMETERS HTTPHEADERS)."
         (prog1 (buffer-substring-no-properties (point) (point-max))
           (kill-buffer))))))
 
+(defun cos5-headObject (bucket region key)
+  "Check if a object, if it does, return metadata.
+With KEY in BUCKET from REGION."
+  (let* ((url-request-method "HEAD")
+         (url (format "https://%s.cos.%s.myqcloud.com/%s" bucket region key))
+         (url-request-extra-headers
+          `(("Authorization" .
+             ,(cos5--sign url-request-method
+                          (url-filename (url-generic-parse-url url)))))))
+    (with-current-buffer (url-retrieve-synchronously url)
+      ;; IDEA parse headers
+      (display-buffer (current-buffer)))))
+
 (defun cos5-putObject (bucket region key content-type body)
   "Upload BODY to BUCKET from REGION with CONTENT-TYPE and KEY."
   (cl-assert (not (multibyte-string-p body)))
