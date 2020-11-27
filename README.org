@@ -32,6 +32,12 @@
 (cos5-getBucket "test-1258907199" "ap-shanghai")
 #+end_src
 
+** DELETE Object
+
+#+begin_src 
+(cos5-deleteObject "test-1258907199" "ap-shanghai" "1.txt")
+#+end_src
+
 * Requirement
 
 The function =gnutls-hash-mac= requires Emacs 26.1 compiled with GnuTLS.

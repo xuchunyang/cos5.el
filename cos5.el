@@ -222,8 +222,22 @@ According to (HTTPMETHOD HTTPURI HTTPPARAMETERS HTTPHEADERS)."
          (url-request-data body))
     (with-current-buffer (url-retrieve-synchronously url)
       (if (eq 200 url-http-response-status)
-          (kill-buffer)
+          (progn (kill-buffer) nil)
         (display-buffer (current-buffer))))))
+
+(defun cos5-deleteObject (bucket region key)
+  "Return an object of BUCKET from REGION with KEY."
+  (let* ((url-request-method "DELETE")
+         (url (format "https://%s.cos.%s.myqcloud.com/%s" bucket region key))
+         (url-request-extra-headers
+          `(("Authorization" .
+             ,(cos5--sign url-request-method
+                          (url-filename (url-generic-parse-url url)))))))
+    (with-current-buffer (url-retrieve-synchronously url)
+      (if (not (eq 204 url-http-response-status))
+          (display-buffer (current-buffer))
+        (kill-buffer)
+        nil))))
 
 (provide 'cos5)
 ;;; cos5.el ends here
