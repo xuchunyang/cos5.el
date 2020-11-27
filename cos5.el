@@ -33,6 +33,7 @@
 (require 'auth-source)                  ; `auth-source-search'
 (require 'url)
 (require 'dom)
+(require 'seq)                          ; `seq' pattern of `pcase'
 
 (defvar url-http-response-status)
 (defvar url-http-end-of-headers)
