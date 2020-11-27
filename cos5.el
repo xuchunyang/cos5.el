@@ -31,6 +31,11 @@
 
 (require 'cl-lib)                       ; `cl-sort'
 (require 'auth-source)                  ; `auth-source-search'
+(require 'url)
+(require 'dom)
+
+(defvar url-http-response-status)
+(defvar url-http-end-of-headers)
 
 ;;;; 请求签名 https://cloud.tencent.com/document/product/436/7778
 
@@ -149,6 +154,70 @@ According to (HTTPMETHOD HTTPURI HTTPPARAMETERS HTTPHEADERS)."
      HttpURI
      HttpParameters
      HttpHeaders)))
+
+;;;; API
+
+;; TODO Learn `ghub-request'
+
+(defun cos5-getService ()
+  "Return a list of Buckets."
+  (let ((url-request-extra-headers `(("Authorization" . ,(cos5--sign "GET" "/")))))
+    (with-current-buffer (url-retrieve-synchronously
+                          "https://service.cos.myqcloud.com/")
+      (if (not (eq 200 url-http-response-status))
+          (display-buffer (current-buffer))
+        (set-buffer-multibyte t)
+        (goto-char (1+ url-http-end-of-headers))
+        (let ((dom (libxml-parse-xml-region (point) (point-max))))
+          (kill-buffer (current-buffer))
+          (dom-by-tag dom 'Bucket))))))
+
+(defun cos5-getBucket (bucket region)
+  "Return a list of objects in BUCKET from REGION."
+  (let ((url-request-extra-headers `(("Authorization" . ,(cos5--sign "GET" "/")))))
+    (with-current-buffer (url-retrieve-synchronously
+                          (format "https://%s.cos.%s.myqcloud.com/" bucket region))
+      (if (not (eq 200 url-http-response-status))
+          (display-buffer (current-buffer))
+        (set-buffer-multibyte t)
+        (goto-char (1+ url-http-end-of-headers))
+        (let ((dom (libxml-parse-xml-region (point) (point-max))))
+          (kill-buffer (current-buffer))
+          (dom-by-tag dom 'Contents))))))
+
+(defun cos5-getObject (bucket region key)
+  "Return an object of BUCKET from REGION with KEY."
+  (let* ((url (format "https://%s.cos.%s.myqcloud.com/%s" bucket region key))
+         (url-request-extra-headers
+          `(("Authorization" .
+             ,(cos5--sign "GET"
+                          (url-filename (url-generic-parse-url url)))))))
+    (with-current-buffer (url-retrieve-synchronously url)
+      (if (not (eq 200 url-http-response-status))
+          (display-buffer (current-buffer))
+        (goto-char (1+ url-http-end-of-headers))
+        (buffer-substring-no-properties (point) (point-max))))))
+
+(defun cos5-putObject (bucket region key content-type body)
+  "Upload BODY to BUCKET from REGION with CONTENT-TYPE and KEY."
+  (let* ((url (format
+               "https://%s.cos.%s.myqcloud.com/%s" bucket region key))
+         (urlObj (url-generic-parse-url url))
+         (path (car (url-path-and-query urlObj)))
+         (host (url-host urlObj))
+         (url-request-method "PUT")
+         (url-request-extra-headers
+          `(("Content-Type" . ,content-type)
+            ("Host" . ,host)))
+         (url-request-extra-headers
+          (cons
+           `("Authorization" .
+             ,(cos5--sign "PUT" path nil url-request-extra-headers))
+           url-request-extra-headers))
+         (url-request-data body))
+    (with-current-buffer (url-retrieve-synchronously url)
+      (unless (eq 200 url-http-response-status)
+        (display-buffer (current-buffer))))))
 
 (provide 'cos5)
 ;;; cos5.el ends here
