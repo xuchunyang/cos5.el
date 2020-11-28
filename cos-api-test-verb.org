@@ -1,22 +1,22 @@
 * [[https://cloud.tencent.com/document/product/436/7751][对象存储 简介 - API 文档 - 文档中心 - 腾讯云]]                         :verb:
+:PROPERTIES:
+:Verb-Map-Request: chunyang-verb-cos5-insert-authorization
+:END:
 
 ** Service 接口
 template https://service.cos.myqcloud.com
 
 *** GET Service（List Buckets）
 GET /
-Authorization: {{ (cos5--sign "GET" "/" nil nil) }}
 
 *** 指定 region
 GET https://cos.ap-shanghai.myqcloud.com/
-Authorization: {{ (cos5--sign "GET" "/" nil nil) }}
 
 ** Bucket 接口
 template https://test-1258907199.cos.ap-shanghai.myqcloud.com/
 
 *** GetBucket (List Objects)
 GET /
-Authorization: {{ (cos5--sign "GET" "/" nil nil) }}
 
 ** Object 接口
 template https://test-1258907199.cos.ap-shanghai.myqcloud.com/
@@ -24,44 +24,34 @@ template https://test-1258907199.cos.ap-shanghai.myqcloud.com/
 *** PUT Object
 PUT /cos5.el
 Content-Type: text/plain; charset=utf-8
-Authorization: {{ (cos5--sign "PUT" "/cos5.el" nil '(("Content-Type" . "text/plain; charset=utf-8"))) }}
 
 {{(verb-read-file "cos5.el")}}
 
 *** PUT Object (UTF-8 测试)
 PUT /utf-8.txt
 Content-Type: text/plain; charset=utf-8
-Authorization: {{ (cos5--sign "PUT" "/utf-8.txt" nil '(("Content-Type" . "text/plain; charset=utf-8"))) }}
 
 hello, 你好呀
 
 *** GET Object
 GET /cos5.el
-Authorization: {{ (cos5--sign "GET" "/cos5.el" nil nil) }}
+
 
 * COMMENT 自动插入 Authorization
 
 #+begin_src elisp :lexical t
-(defun chunyang-verb-cos5-sign-insert ()
-  (interactive)
-  (pcase-let (((eieio method url headers)
-               (save-excursion
-                 (verb--request-spec-from-hierarchy))))
-    (setq headers
-          (cl-remove "Authorization" headers
-                     :key #'car
-                     :test #'string=))
+(setq org-use-property-inheritance t)
+
+(defun chunyang-verb-cos5-insert-authorization (request-spec)
+  (pcase-let (((eieio method url headers) request-spec))
+    (cl-assert (not (assoc "Authorization" headers)))
     (pcase-let ((`(,path . ,query) (url-path-and-query url)))
-      (insert
-       (format "Authorization: {{ %S }}\n"
-               (list
-                'cos5--sign
-                method
-                path
-                (and query `',(url-parse-query-string query))
-                (and headers `',headers)))))))
+      (cl-callf2 cons
+          (cons "Authorization" (cos5--sign method path query headers))
+          (oref request-spec headers))
+      request-spec)))
 #+end_src
 
 #+RESULTS:
-: chunyang-verb-cos5-sign-insert
+: chunyang-verb-cos5-insert-authorization
 
