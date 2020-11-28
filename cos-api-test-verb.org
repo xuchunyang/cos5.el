@@ -33,8 +33,16 @@ Content-Type: text/plain; charset=utf-8
 
 hello, 你好呀
 
+*** PUT Object ([[https://cloud.tencent.com/document/product/436/36427][对象存储 MD5 校验 - 最佳实践 - 文档中心 - 腾讯云]])
+PUT /data.txt
+Content-Type: text/plain
+Content-MD5: {{ (base64-encode-string (secure-hash 'md5 "HELLO\n" nil nil 'binary)) }}
+x-cos-meta-md5: {{ (md5 "HELLO\n") }}
+
+HELLO
+
 *** GET Object
-GET /cos5.el
+GET /data.txt
 
 
 * COMMENT 自动插入 Authorization
